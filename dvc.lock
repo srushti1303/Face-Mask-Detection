@@ -1,0 +1,117 @@
+schema: '2.0'
+stages:
+  data_ingestion:
+    cmd: python src/FaceMask/pipeline/stage_01_data_ingestion.py
+    deps:
+    - path: config/config.yaml
+      hash: md5
+      md5: 2aeaff6a9999def909a303d57bf8b441
+      size: 779
+    - path: src/FaceMask/pipeline/stage_01_data_ingestion.py
+      hash: md5
+      md5: 364876341fe8a4cb4154841eb1430d01
+      size: 871
+    outs:
+    - path: artifacts/data_ingestion/Dataset
+      hash: md5
+      md5: c5e8cfe17120e45f6955734b2646b78d.dir
+      size: 25228601
+      nfiles: 916
+  prepare_base_model:
+    cmd: python src/FaceMask/pipeline/stage_02_prepare_base_model.py
+    deps:
+    - path: config/config.yaml
+      hash: md5
+      md5: 2aeaff6a9999def909a303d57bf8b441
+      size: 779
+    - path: src/FaceMask/pipeline/stage_02_prepare_base_model.py
+      hash: md5
+      md5: e6365fee2e37cbfd0b13c435bf696205
+      size: 950
+    params:
+      params.yaml:
+        CLASSES: 2
+        IMAGE_SIZE:
+        - 224
+        - 224
+        - 3
+        INCLUDE_TOP: false
+        LEARNING_RATE: 0.01
+        WEIGHTS: imagenet
+    outs:
+    - path: artifacts/prepare_base_model
+      hash: md5
+      md5: 94da8052e7c04e86be543afe1fdf652f.dir
+      size: 118061293
+      nfiles: 2
+  training:
+    cmd: python src/FaceMask/pipeline/stage_03_training.py
+    deps:
+    - path: artifacts/data_ingestion/Dataset
+      hash: md5
+      md5: c5e8cfe17120e45f6955734b2646b78d.dir
+      size: 25228601
+      nfiles: 916
+    - path: artifacts/prepare_base_model
+      hash: md5
+      md5: 94da8052e7c04e86be543afe1fdf652f.dir
+      size: 118061293
+      nfiles: 2
+    - path: config/config.yaml
+      hash: md5
+      md5: 2aeaff6a9999def909a303d57bf8b441
+      size: 779
+    - path: src/FaceMask/components/prepare_callbacks.py
+      hash: md5
+      md5: 7484a9178cabb83bfcc410f8e8da3806
+      size: 965
+    - path: src/FaceMask/pipeline/stage_03_training.py
+      hash: md5
+      md5: bd65e3322c20d37f41932830c55eb17d
+      size: 1204
+    params:
+      params.yaml:
+        AUGMENTATION: true
+        BATCH_SIZE: 16
+        EPOCHS: 5
+        IMAGE_SIZE:
+        - 224
+        - 224
+        - 3
+    outs:
+    - path: artifacts/training/model.keras
+      hash: md5
+      md5: 552ecd9b488f9cbdad009726154e67ab
+      size: 59135201
+  evaluation:
+    cmd: python src/FaceMask/pipeline/stage_04_model_evaluation.py
+    deps:
+    - path: artifacts/data_ingestion/Dataset
+      hash: md5
+      md5: c5e8cfe17120e45f6955734b2646b78d.dir
+      size: 25228601
+      nfiles: 916
+    - path: artifacts/training/model.keras
+      hash: md5
+      md5: 552ecd9b488f9cbdad009726154e67ab
+      size: 59135201
+    - path: config/config.yaml
+      hash: md5
+      md5: 2aeaff6a9999def909a303d57bf8b441
+      size: 779
+    - path: src/FaceMask/pipeline/stage_04_model_evaluation.py
+      hash: md5
+      md5: 2241eaf8240300bf484530e1859f7be9
+      size: 835
+    params:
+      params.yaml:
+        BATCH_SIZE: 16
+        IMAGE_SIZE:
+        - 224
+        - 224
+        - 3
+    outs:
+    - path: scores.json
+      hash: md5
+      md5: 2b0fe065988e7e8243c0156b6d902dad
+      size: 72
